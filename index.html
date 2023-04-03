@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"
+        integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Word Masters</title>
+</head>
+<body>
+    <header class="header">
+        <h1>Xander Word Masters</h1>
+    </header>
+    <p id="success-msg"></p>
+    <div id="tile-container">
+        
+    </div>
+        <div class="wordboard">
+            <div class="wordboard-letter" id="letter-0"></div>
+            <div class="wordboard-letter" id="letter-1"></div>
+            <div class="wordboard-letter" id="letter-2"></div>
+            <div class="wordboard-letter" id="letter-3"></div>
+            <div class="wordboard-letter" id="letter-4"></div>
+            <div class="wordboard-letter" id="letter-5"></div>
+            <div class="wordboard-letter" id="letter-6"></div>
+            <div class="wordboard-letter" id="letter-7"></div>
+            <div class="wordboard-letter" id="letter-8"></div>
+            <div class="wordboard-letter" id="letter-9"></div>
+            <div class="wordboard-letter" id="letter-10"></div>
+            <div class="wordboard-letter" id="letter-11"></div>
+            <div class="wordboard-letter" id="letter-12"></div>
+            <div class="wordboard-letter" id="letter-13"></div>
+            <div class="wordboard-letter" id="letter-14"></div>
+            <div class="wordboard-letter" id="letter-15"></div>
+            <div class="wordboard-letter" id="letter-16"></div>
+            <div class="wordboard-letter" id="letter-17"></div>
+            <div class="wordboard-letter" id="letter-18"></div>
+            <div class="wordboard-letter" id="letter-19"></div>
+            <div class="wordboard-letter" id="letter-20"></div>
+            <div class="wordboard-letter" id="letter-21"></div>
+            <div class="wordboard-letter" id="letter-21"></div>
+            <div class="wordboard-letter" id="letter-23"></div>
+            <div class="wordboard-letter" id="letter-24"></div>
+            <div class="wordboard-letter" id="letter-25"></div>
+            <div class="wordboard-letter" id="letter-26"></div>
+            <div class="wordboard-letter" id="letter-27"></div>
+            <div class="wordboard-letter" id="letter-28"></div>
+            <div class="wordboard-letter" id="letter-29"></div>
+        </div>
+    <script src="animate.js"></script>
+    <script>
+
+        const message = document.getElementById('success-msg');
+        const letters = document.querySelectorAll('.wordboard-letter');
+        console.log(message);
+        console.log(letters);
+
+
+
+async function init(){
+
+
+    let currentGuess = '';
+    let currentRow = 0;
+    const ANSWER_LENGTH = 5;
+    const url = 'https://words.dev-apis.com/word-of-the-day'
+    const res = await fetch(url);
+    const data = await res.json();
+
+    let wordOftheDay = data.word.toUpperCase();
+    console.log(wordOftheDay)
+    let wordParts = wordOftheDay.split('');
+
+
+
+    function addLetter(letter){
+        if(currentGuess.length < ANSWER_LENGTH){
+            currentGuess += letter;
+             
+        }else{
+            currentGuess = currentGuess.substring(0, currentGuess.length -1)+letter;
+        }
+
+            letters[currentRow * ANSWER_LENGTH + currentGuess.length - 1].textContent = letter;
+    }
+
+
+function handleCommit(){
+if (currentGuess.length !== ANSWER_LENGTH) {
+    return;}
+
+let guessParts = currentGuess.split('');
+
+for(let i = 0; i<ANSWER_LENGTH; i++){
+    if(guessParts[i]===wordParts[i]){
+        //it has already been handled
+         letters[currentRow * ANSWER_LENGTH + i].classList.add('correct');
+
+    }
+    
+}
+
+for (let i = 0; i<ANSWER_LENGTH; i++){
+    if(guessParts[i]===wordParts[i]){
+        //it has already been handled
+    }else if (wordParts.includes(guessParts[i])){
+        letters[currentRow * ANSWER_LENGTH + i].classList.add('close');
+    }else{
+        letters[currentRow * ANSWER_LENGTH + i].classList.add('wrong');
+
+    }
+}
+if(currentGuess === wordOftheDay){
+    animate();
+    message.textContent = 'You win'
+    message.classList.add('complete')
+}else if (currentRow === 5){
+    animate();
+    message.innerHTML = `You lose! The word was <span class = 'wotd'>${wordOftheDay}</span>`
+    message.classList.add('complete');
+}
+
+currentGuess = '';
+currentRow++;
+
+}
+
+function handleBackspace(){
+    currentGuess = currentGuess.substring(0,currentGuess.length -1);
+    letters[currentRow* ANSWER_LENGTH + currentGuess.length ].textContent = ''
+}
+
+    document.addEventListener('keydown',function(event){
+    const action = event.key;
+   
+
+    if(action === 'Enter'){
+        handleCommit();
+    }else if (action === 'Backspace'){
+        handleBackspace();
+    }else if(isLetter(action)){
+        addLetter(action.toUpperCase());
+    }else{
+
+    }
+
+    })
+
+
+
+
+
+}
+
+function isLetter(action){
+return /^[a-zA-z]$/.test(action);
+}
+
+function makeMap(array){
+const obj = {};
+for(let i = 0; i<array.length; i++){
+    if(obj[array]){
+        obj[array[i]]++;
+    }else{
+        obj[array[i]]=1
+    }
+}
+return obj;
+}
+
+init();
+
+
+
+
+
+    
+
+    </script>
+</body>
+</html>
+
