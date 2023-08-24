@@ -17,3 +17,5 @@ This is a simple Wordle game built using JavaScript, HTML, and CSS. It is a word
 - After six attempts, the game reveals the correct word and asks the player if they want to play again.
 # Design
 The design of this Wordle game is simple and intuitive. It features a clean, minimalist style with a monospace font for easy readability. The layout is responsive and adjusts to different screen sizes.
+
+Click <a href = 'https://yeni2766.github.io/wordle/'>Here</a>
