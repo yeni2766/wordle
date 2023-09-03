@@ -53,125 +53,117 @@
     <script src="animate.js"></script>
     <script>
 
-        const message = document.getElementById('success-msg');
-        const letters = document.querySelectorAll('.wordboard-letter');
-        console.log(message);
-        console.log(letters);
+// Get references to HTML elements
+const message = document.getElementById('success-msg'); // The message element
+const letters = document.querySelectorAll('.wordboard-letter'); // All the letter elements
+console.log(message);
+console.log(letters);
 
-
-
-async function init(){
-
-
-    let currentGuess = '';
-    let currentRow = 0;
-    const ANSWER_LENGTH = 5;
-    const url = 'https://words.dev-apis.com/word-of-the-day'
-    const res = await fetch(url);
+// Asynchronous function for game initialization
+async function init() {
+    let currentGuess = ''; // Current player's guess
+    let currentRow = 0; // Current row in the game board
+    const ANSWER_LENGTH = 5; // Length of the word to guess
+    const url = 'https://words.dev-apis.com/word-of-the-day';
+    const res = await fetch(url); // Fetch a word from the API
     const data = await res.json();
 
-    let wordOftheDay = data.word.toUpperCase();
-    console.log(wordOftheDay)
-    let wordParts = wordOftheDay.split('');
+    let wordOftheDay = data.word.toUpperCase(); // The word to guess, converted to uppercase
+    console.log(wordOftheDay);
+    let wordParts = wordOftheDay.split(''); // Split the word into individual characters
 
-
-
-    function addLetter(letter){
-        if(currentGuess.length < ANSWER_LENGTH){
+    // Function to add a letter to the current guess
+    function addLetter(letter) {
+        if (currentGuess.length < ANSWER_LENGTH) {
             currentGuess += letter;
-             
-        }else{
-            currentGuess = currentGuess.substring(0, currentGuess.length -1)+letter;
+        } else {
+            currentGuess = currentGuess.substring(0, currentGuess.length - 1) + letter;
+        }
+        letters[currentRow * ANSWER_LENGTH + currentGuess.length - 1].textContent = letter;
+    }
+
+    // Function to handle a committed guess
+    function handleCommit() {
+        if (currentGuess.length !== ANSWER_LENGTH) {
+            return;
         }
 
-            letters[currentRow * ANSWER_LENGTH + currentGuess.length - 1].textContent = letter;
+        let guessParts = currentGuess.split('');
+
+        // Check for correct letters in correct positions
+        for (let i = 0; i < ANSWER_LENGTH; i++) {
+            if (guessParts[i] === wordParts[i]) {
+                letters[currentRow * ANSWER_LENGTH + i].classList.add('correct');
+            }
+        }
+
+        // Check for correct letters in wrong positions and wrong letters
+        for (let i = 0; i < ANSWER_LENGTH; i++) {
+            if (guessParts[i] === wordParts[i]) {
+                // Correctly placed letters
+            } else if (wordParts.includes(guessParts[i])) {
+                letters[currentRow * ANSWER_LENGTH + i].classList.add('close');
+            } else {
+                letters[currentRow * ANSWER_LENGTH + i].classList.add('wrong');
+            }
+        }
+
+        // Handle win or lose conditions
+        if (currentGuess === wordOftheDay) {
+            animate();
+            message.textContent = 'You win';
+            message.classList.add('complete');
+        } else if (currentRow === 5) {
+            animate();
+            message.innerHTML = `You lose! The word was <span class='wotd'>${wordOftheDay}</span>`;
+            message.classList.add('complete');
+        }
+
+        currentGuess = '';
+        currentRow++;
     }
 
-
-function handleCommit(){
-if (currentGuess.length !== ANSWER_LENGTH) {
-    return;}
-
-let guessParts = currentGuess.split('');
-
-for(let i = 0; i<ANSWER_LENGTH; i++){
-    if(guessParts[i]===wordParts[i]){
-        //it has already been handled
-         letters[currentRow * ANSWER_LENGTH + i].classList.add('correct');
-
-    }
-    
-}
-
-for (let i = 0; i<ANSWER_LENGTH; i++){
-    if(guessParts[i]===wordParts[i]){
-        //it has already been handled
-    }else if (wordParts.includes(guessParts[i])){
-        letters[currentRow * ANSWER_LENGTH + i].classList.add('close');
-    }else{
-        letters[currentRow * ANSWER_LENGTH + i].classList.add('wrong');
-
-    }
-}
-if(currentGuess === wordOftheDay){
-    animate();
-    message.textContent = 'You win'
-    message.classList.add('complete')
-}else if (currentRow === 5){
-    animate();
-    message.innerHTML = `You lose! The word was <span class = 'wotd'>${wordOftheDay}</span>`
-    message.classList.add('complete');
-}
-
-currentGuess = '';
-currentRow++;
-
-}
-
-function handleBackspace(){
-    currentGuess = currentGuess.substring(0,currentGuess.length -1);
-    letters[currentRow* ANSWER_LENGTH + currentGuess.length ].textContent = ''
-}
-
-    document.addEventListener('keydown',function(event){
-    const action = event.key;
-   
-
-    if(action === 'Enter'){
-        handleCommit();
-    }else if (action === 'Backspace'){
-        handleBackspace();
-    }else if(isLetter(action)){
-        addLetter(action.toUpperCase());
-    }else{
-
+    // Function to handle backspace action
+    function handleBackspace() {
+        currentGuess = currentGuess.substring(0, currentGuess.length - 1);
+        letters[currentRow * ANSWER_LENGTH + currentGuess.length].textContent = '';
     }
 
-    })
+    // Event listener for keyboard actions
+    document.addEventListener('keydown', function (event) {
+        const action = event.key;
 
-
-
-
-
+        if (action === 'Enter') {
+            handleCommit();
+        } else if (action === 'Backspace') {
+            handleBackspace();
+        } else if (isLetter(action)) {
+            addLetter(action.toUpperCase());
+        } else {
+            // Handle other key presses if necessary
+        }
+    });
 }
 
-function isLetter(action){
-return /^[a-zA-z]$/.test(action);
+// Function to check if a character is a letter
+function isLetter(action) {
+    return /^[a-zA-z]$/.test(action);
 }
 
-function makeMap(array){
-const obj = {};
-for(let i = 0; i<array.length; i++){
-    if(obj[array]){
-        obj[array[i]]++;
-    }else{
-        obj[array[i]]=1
+// Function to create a map of character frequencies in an array
+function makeMap(array) {
+    const obj = {};
+    for (let i = 0; i < array.length; i++) {
+        if (obj[array]) {
+            obj[array[i]]++;
+        } else {
+            obj[array[i]] = 1;
+        }
     }
-}
-return obj;
+    return obj;
 }
 
-init();
+init(); // Initialize the Wordle game
 
 
 
