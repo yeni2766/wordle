@@ -1,177 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"
-        integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <title>Word Masters</title>
-</head>
-<body>
-    <header class="header">
-        <h1>Yeni Word Masters</h1>
-    </header>
-    <p id="success-msg"></p>
-    <div id="tile-container">
-        
-    </div>
-        <div class="wordboard">
-            <div class="wordboard-letter" id="letter-0"></div>
-            <div class="wordboard-letter" id="letter-1"></div>
-            <div class="wordboard-letter" id="letter-2"></div>
-            <div class="wordboard-letter" id="letter-3"></div>
-            <div class="wordboard-letter" id="letter-4"></div>
-            <div class="wordboard-letter" id="letter-5"></div>
-            <div class="wordboard-letter" id="letter-6"></div>
-            <div class="wordboard-letter" id="letter-7"></div>
-            <div class="wordboard-letter" id="letter-8"></div>
-            <div class="wordboard-letter" id="letter-9"></div>
-            <div class="wordboard-letter" id="letter-10"></div>
-            <div class="wordboard-letter" id="letter-11"></div>
-            <div class="wordboard-letter" id="letter-12"></div>
-            <div class="wordboard-letter" id="letter-13"></div>
-            <div class="wordboard-letter" id="letter-14"></div>
-            <div class="wordboard-letter" id="letter-15"></div>
-            <div class="wordboard-letter" id="letter-16"></div>
-            <div class="wordboard-letter" id="letter-17"></div>
-            <div class="wordboard-letter" id="letter-18"></div>
-            <div class="wordboard-letter" id="letter-19"></div>
-            <div class="wordboard-letter" id="letter-20"></div>
-            <div class="wordboard-letter" id="letter-21"></div>
-            <div class="wordboard-letter" id="letter-21"></div>
-            <div class="wordboard-letter" id="letter-23"></div>
-            <div class="wordboard-letter" id="letter-24"></div>
-            <div class="wordboard-letter" id="letter-25"></div>
-            <div class="wordboard-letter" id="letter-26"></div>
-            <div class="wordboard-letter" id="letter-27"></div>
-            <div class="wordboard-letter" id="letter-28"></div>
-            <div class="wordboard-letter" id="letter-29"></div>
-        </div>
-    <script src="animate.js"></script>
-    <script>
-
-// Get references to HTML elements
-const message = document.getElementById('success-msg'); // The message element
-const letters = document.querySelectorAll('.wordboard-letter'); // All the letter elements
-console.log(message);
-console.log(letters);
-
-// Asynchronous function for game initialization
-async function init() {
-    let currentGuess = ''; // Current player's guess
-    let currentRow = 0; // Current row in the game board
-    const ANSWER_LENGTH = 5; // Length of the word to guess
-    const url = 'https://words.dev-apis.com/word-of-the-day';
-    const res = await fetch(url); // Fetch a word from the API
-    const data = await res.json();
-
-    let wordOftheDay = data.word.toUpperCase(); // The word to guess, converted to uppercase
-    console.log(wordOftheDay);
-    let wordParts = wordOftheDay.split(''); // Split the word into individual characters
-
-    // Function to add a letter to the current guess
-    function addLetter(letter) {
-        if (currentGuess.length < ANSWER_LENGTH) {
-            currentGuess += letter;
-        } else {
-            currentGuess = currentGuess.substring(0, currentGuess.length - 1) + letter;
-        }
-        letters[currentRow * ANSWER_LENGTH + currentGuess.length - 1].textContent = letter;
-    }
-
-    // Function to handle a committed guess
-    function handleCommit() {
-        if (currentGuess.length !== ANSWER_LENGTH) {
-            return;
-        }
-
-        let guessParts = currentGuess.split('');
-
-        // Check for correct letters in correct positions
-        for (let i = 0; i < ANSWER_LENGTH; i++) {
-            if (guessParts[i] === wordParts[i]) {
-                letters[currentRow * ANSWER_LENGTH + i].classList.add('correct');
-            }
-        }
-
-        // Check for correct letters in wrong positions and wrong letters
-        for (let i = 0; i < ANSWER_LENGTH; i++) {
-            if (guessParts[i] === wordParts[i]) {
-                // Correctly placed letters
-            } else if (wordParts.includes(guessParts[i])) {
-                letters[currentRow * ANSWER_LENGTH + i].classList.add('close');
-            } else {
-                letters[currentRow * ANSWER_LENGTH + i].classList.add('wrong');
-            }
-        }
-
-        // Handle win or lose conditions
-        if (currentGuess === wordOftheDay) {
-            animate();
-            message.textContent = 'You win';
-            message.classList.add('complete');
-        } else if (currentRow === 5) {
-            animate();
-            message.innerHTML = `You lose! The word was <span class='wotd'>${wordOftheDay}</span>`;
-            message.classList.add('complete');
-        }
-
-        currentGuess = '';
-        currentRow++;
-    }
-
-    // Function to handle backspace action
-    function handleBackspace() {
-        currentGuess = currentGuess.substring(0, currentGuess.length - 1);
-        letters[currentRow * ANSWER_LENGTH + currentGuess.length].textContent = '';
-    }
-
-    // Event listener for keyboard actions
-    document.addEventListener('keydown', function (event) {
-        const action = event.key;
-
-        if (action === 'Enter') {
-            handleCommit();
-        } else if (action === 'Backspace') {
-            handleBackspace();
-        } else if (isLetter(action)) {
-            addLetter(action.toUpperCase());
-        } else {
-            // Handle other key presses if necessary
-        }
-    });
-}
-
-// Function to check if a character is a letter
-function isLetter(action) {
-    return /^[a-zA-z]$/.test(action);
-}
-
-// Function to create a map of character frequencies in an array
-function makeMap(array) {
-    const obj = {};
-    for (let i = 0; i < array.length; i++) {
-        if (obj[array]) {
-            obj[array[i]]++;
-        } else {
-            obj[array[i]] = 1;
-        }
-    }
-    return obj;
-}
-
-init(); // Initialize the Wordle game
-
-
-
-
-
-    
-
-    </script>
-</body>
+   <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="style.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"
+         integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q=="
+         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <title>Word Masters</title>
+   </head>
+   <body>
+      <header class="header">
+         <h1>Yeni Word Masters</h1>
+      </header>
+      <p id="success-msg"></p>
+      <div id="tile-container">
+      </div>
+      <div class="wordboard">
+         <div class="wordboard-letter" id="letter-0"></div>
+         <div class="wordboard-letter" id="letter-1"></div>
+         <div class="wordboard-letter" id="letter-2"></div>
+         <div class="wordboard-letter" id="letter-3"></div>
+         <div class="wordboard-letter" id="letter-4"></div>
+         <div class="wordboard-letter" id="letter-5"></div>
+         <div class="wordboard-letter" id="letter-6"></div>
+         <div class="wordboard-letter" id="letter-7"></div>
+         <div class="wordboard-letter" id="letter-8"></div>
+         <div class="wordboard-letter" id="letter-9"></div>
+         <div class="wordboard-letter" id="letter-10"></div>
+         <div class="wordboard-letter" id="letter-11"></div>
+         <div class="wordboard-letter" id="letter-12"></div>
+         <div class="wordboard-letter" id="letter-13"></div>
+         <div class="wordboard-letter" id="letter-14"></div>
+         <div class="wordboard-letter" id="letter-15"></div>
+         <div class="wordboard-letter" id="letter-16"></div>
+         <div class="wordboard-letter" id="letter-17"></div>
+         <div class="wordboard-letter" id="letter-18"></div>
+         <div class="wordboard-letter" id="letter-19"></div>
+         <div class="wordboard-letter" id="letter-20"></div>
+         <div class="wordboard-letter" id="letter-21"></div>
+         <div class="wordboard-letter" id="letter-21"></div>
+         <div class="wordboard-letter" id="letter-23"></div>
+         <div class="wordboard-letter" id="letter-24"></div>
+         <div class="wordboard-letter" id="letter-25"></div>
+         <div class="wordboard-letter" id="letter-26"></div>
+         <div class="wordboard-letter" id="letter-27"></div>
+         <div class="wordboard-letter" id="letter-28"></div>
+         <div class="wordboard-letter" id="letter-29"></div>
+      </div>
+      <script src="animate.js"></script>
+      <script>
+         // Grab the message element where I show win / lose text
+         const message = document.getElementById('success-msg');
+         
+         // Grab all 30 letter tiles (this gives me a flat list, not rows)
+         const letters = document.querySelectorAll('.wordboard-letter');
+         
+         // Just logging to confirm everything is being selected properly
+         console.log(message);
+         console.log(letters);
+         
+         // Main game setup
+         async function init() {
+         
+             // Stores whatever the user is currently typing (max 5 letters)
+             let currentGuess = '';
+         
+             // Tracks which row the player is on (0–5)
+             let currentRow = 0;
+         
+             // Word length is fixed at 5 (like Wordle)
+             const ANSWER_LENGTH = 5;
+         
+             // Fetch the word of the day from the API
+             const url = 'https://words.dev-apis.com/word-of-the-day';
+             const res = await fetch(url);
+             const data = await res.json();
+         
+             // Convert to uppercase so comparisons stay consistent
+             let wordOftheDay = data.word.toUpperCase();
+             console.log(wordOftheDay); // Helpful for testing
+         
+             // Turn the word into an array so I can compare letter by letter
+             let wordParts = wordOftheDay.split('');
+         
+             // Handles typing a letter
+             function addLetter(letter) {
+         
+                 // Only allow up to 5 letters per row
+                 if (currentGuess.length < ANSWER_LENGTH) {
+                     currentGuess += letter;
+                 } else {
+                     // If already 5 letters, replace the last one
+                     currentGuess =
+                         currentGuess.substring(0, currentGuess.length - 1) + letter;
+                 }
+         
+                 // Figure out which tile to update
+                 // Each row has 5 letters, so row * 5 gives starting index
+                 const tileIndex =
+                     currentRow * ANSWER_LENGTH + currentGuess.length - 1;
+         
+                 // Update that tile visually
+                 letters[tileIndex].textContent = letter;
+             }
+         
+             // Runs when Enter is pressed
+             function handleCommit() {
+         
+                 // If the guess isn't 5 letters yet, don't allow submit
+                 if (currentGuess.length !== ANSWER_LENGTH) {
+                     return;
+                 }
+         
+                 // Split guess into array for easier comparison
+                 let guessParts = currentGuess.split('');
+         
+                 // First pass: mark letters that are correct and in the right position
+                 for (let i = 0; i < ANSWER_LENGTH; i++) {
+                     if (guessParts[i] === wordParts[i]) {
+                         letters[currentRow * ANSWER_LENGTH + i]
+                             .classList.add('correct');
+                     }
+                 }
+         
+                 // Second pass: mark close or wrong letters
+                 for (let i = 0; i < ANSWER_LENGTH; i++) {
+         
+                     if (guessParts[i] === wordParts[i]) {
+                         // Already handled as correct
+                     }
+                     else if (wordParts.includes(guessParts[i])) {
+                         letters[currentRow * ANSWER_LENGTH + i]
+                             .classList.add('close');
+                     }
+                     else {
+                         letters[currentRow * ANSWER_LENGTH + i]
+                             .classList.add('wrong');
+                     }
+                 }
+         
+                 // If guess matches exactly → win
+                 if (currentGuess === wordOftheDay) {
+                     animate();
+                     message.textContent = 'You win';
+                     message.classList.add('complete');
+                 }
+                 // If this was the last row and still wrong → lose
+                 else if (currentRow === 5) {
+                     animate();
+                     message.innerHTML =
+                         `You lose! The word was <span class='wotd'>${wordOftheDay}</span>`;
+                     message.classList.add('complete');
+                 }
+         
+                 // Reset guess and move to next row
+                 currentGuess = '';
+                 currentRow++;
+             }
+         
+             // Handles backspace
+             function handleBackspace() {
+         
+                 // Remove last letter from guess string
+                 currentGuess =
+                     currentGuess.substring(0, currentGuess.length - 1);
+         
+                 // Clear that tile visually
+                 const tileIndex =
+                     currentRow * ANSWER_LENGTH + currentGuess.length;
+         
+                 letters[tileIndex].textContent = '';
+             }
+         
+             // Listen for keyboard input
+             document.addEventListener('keydown', function (event) {
+         
+                 const action = event.key;
+         
+                 if (action === 'Enter') {
+                     handleCommit();
+                 }
+                 else if (action === 'Backspace') {
+                     handleBackspace();
+                 }
+                 else if (isLetter(action)) {
+                     addLetter(action.toUpperCase());
+                 }
+             });
+         }
+         
+         // Helper to check if key pressed is a single letter
+         function isLetter(action) {
+             return /^[a-zA-z]$/.test(action);
+         }
+         
+         // Creates a frequency map of letters (useful for duplicate handling)
+         function makeMap(array) {
+             const obj = {};
+         
+             for (let i = 0; i < array.length; i++) {
+                 const letter = array[i];
+         
+                 if (obj[letter]) {
+                     obj[letter]++;
+                 } else {
+                     obj[letter] = 1;
+                 }
+             }
+         
+             return obj;
+         }
+         
+         // Start the game
+         init();
+         
+         
+         
+         
+         
+             
+         
+      </script>
+   </body>
 </html>
-
